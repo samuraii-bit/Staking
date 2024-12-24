@@ -3,7 +3,7 @@ pragma solidity ^0.8.28;
 import "../interfaces/IMyFirstToken.sol";
 import {AccessControl} from "@openzeppelin/contracts/access/AccessControl.sol";
 
-contract MyFirstToken is IMyFirstToken, AccessControl {
+contract LPToken is IMyFirstToken, AccessControl {
     bytes32 public constant STAKING_CONTRACT_ROLE = keccak256("STAKING_CONTRACT_ROLE");
 
     address public owner;
@@ -25,7 +25,7 @@ contract MyFirstToken is IMyFirstToken, AccessControl {
         symbol = _symbol;
         decimals = _decimals;
         initialSupply = _initialSupply;
-
+        
         mint(owner, initialSupply);
     }
 
@@ -39,10 +39,7 @@ contract MyFirstToken is IMyFirstToken, AccessControl {
     }
 
     function mint(address _to, uint256 _value) public {
-        require(msg.sender == owner ||
-                hasRole(STAKING_CONTRACT_ROLE, msg.sender), 
-                "Only owner can mint tokens");
-        
+        require(msg.sender == owner, "Only owner can mint tokens");
         balanceOf[_to] += _value;
         totalSupply += _value;
 
@@ -70,7 +67,7 @@ contract MyFirstToken is IMyFirstToken, AccessControl {
 
     function transferFrom (address _from, address _to, uint256 _value) public returns (bool success){
         require(allowance[_from][_to] >= _value ||
-                hasRole(STAKING_CONTRACT_ROLE, stakingContract), 
+                hasRole(STAKING_CONTRACT_ROLE, msg.sender), 
                 "At first u have to get a permission for the transfer");
         require(balanceOf[_from] >= _value, "There are not enough funds on the balance sheet");
         balanceOf[_from] -= _value;

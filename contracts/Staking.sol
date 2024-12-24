@@ -17,7 +17,7 @@ contract Staking is IStaking, AccessControl {
         uint256 unstakeAvailable;
     }
 
-    mapping (address => stakesInfo) stakes;
+    mapping (address => stakesInfo) public stakes;
 
     uint256 public rewardRate;
     uint256 public stakeLockTime;
@@ -36,14 +36,17 @@ contract Staking is IStaking, AccessControl {
     
     function stake(uint256 _amount) external {
         require(_amount > 0, "Amount must be greater than 0");
+        require(lpToken.balanceOf(msg.sender) >= _amount, "No funds enough to stake");
         require(block.timestamp >= stakes[msg.sender].lastStakeTimeStamp + stakeLockTime, "U have to wait");
-        
+
         if (stakes[msg.sender].balance > 0) {
             if (block.timestamp >= stakes[msg.sender].lastStakeTimeStamp + unstakeLockTime)
             {
-                stakes[msg.sender].unstakeAvailable += stakes[msg.sender].balance;
+                stakes[msg.sender].unstakeAvailable += (stakes[msg.sender].balance - stakes[msg.sender].unstakeAvailable);
             }
         }
+        
+        calculateCurrentReward(msg.sender);
 
         lpToken.transferFrom(msg.sender, address(this), _amount);
         stakes[msg.sender].balance += _amount;
@@ -53,11 +56,10 @@ contract Staking is IStaking, AccessControl {
     }    
 
     function claim() external {
-        require(stakes[msg.sender].balance > 0, "There are no tokens to claim");
-        
         calculateCurrentReward(msg.sender);
         require(stakes[msg.sender].reward > 0, "There are no available rewards");
-        
+
+        rewardToken.mint(address(this), stakes[msg.sender].reward);
         rewardToken.transferFrom(address(this), msg.sender, stakes[msg.sender].reward);
         stakes[msg.sender].reward = 0;
         
@@ -65,34 +67,49 @@ contract Staking is IStaking, AccessControl {
     }
 
     function unstake() public {
+        if (stakes[msg.sender].balance > 0) {
+            if (block.timestamp >= stakes[msg.sender].lastStakeTimeStamp + unstakeLockTime)
+            {
+                stakes[msg.sender].unstakeAvailable += (stakes[msg.sender].balance - stakes[msg.sender].unstakeAvailable);
+            }
+        }
         require(stakes[msg.sender].unstakeAvailable > 0, "There are no tokens to unstake");     
-        require(block.timestamp >= stakes[msg.sender].lastStakeTimeStamp + unstakeLockTime, "U have to wait");
+
+        calculateCurrentReward(msg.sender);
 
         lpToken.transferFrom(address(this), msg.sender, stakes[msg.sender].unstakeAvailable);
-        stakes[msg.sender].balance = 0; 
-
+        stakes[msg.sender].balance -= stakes[msg.sender].unstakeAvailable;
+        stakes[msg.sender].unstakeAvailable = 0;
+        
         emit Unstake(msg.sender);
     }
 
     function setNewRewardRate(uint256 _rewardRate) external {
         require(hasRole(ADMIN_ROLE, msg.sender), "Only admins can use this function");
         rewardRate = _rewardRate;
+        
+        emit SetNewRewardRate(_rewardRate);
     }
     
     function setNewStakeLockTime(uint256 _stakeLockTime) external {
         require(hasRole(ADMIN_ROLE, msg.sender), "Only admins can use this function");
         stakeLockTime = _stakeLockTime;
+
+        emit SetNewStakeLockTime(_stakeLockTime);
     }
 
     function setNewUnstakeLockTime(uint256 _unstakeLockTime) external {
         require(hasRole(ADMIN_ROLE, msg.sender), "Only admins can use this function");
         unstakeLockTime = _unstakeLockTime;
+
+        emit SetNewUnstakeLockTime(_unstakeLockTime);
     }
 
-    function calculateCurrentReward(address _staker) public {
+    function calculateCurrentReward(address _staker) public returns (uint256) {
         stakes[_staker].reward += 
             (stakes[_staker].balance * rewardRate * (block.timestamp - stakes[_staker].lastStakeTimeStamp))
             /
             (100 * (365 days));
+        return stakes[_staker].reward;
     }
 }
