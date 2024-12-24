@@ -69,6 +69,7 @@ contract Staking is IStaking, AccessControl {
         require(block.timestamp >= stakes[msg.sender].lastStakeTimeStamp + unstakeLockTime, "U have to wait");
 
         lpToken.transferFrom(address(this), msg.sender, stakes[msg.sender].unstakeAvailable);
+        stakes[msg.sender].balance = 0; 
 
         emit Unstake(msg.sender);
     }
