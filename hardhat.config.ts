@@ -1,5 +1,5 @@
 import { HardhatUserConfig, task } from "hardhat/config";
-import {contractAddress as StakingContractAddress} from "./addresses.json";
+import {contractAddress as StakingContractAddress} from "./contractsInfo/uniswapLPTokenInfo.json";
 import "@nomicfoundation/hardhat-toolbox";
 require("dotenv").config();
 
@@ -9,8 +9,8 @@ export const stakeLockTime = 60 * 60 * 24;
 export const unstakeLockTime = 60 * 60 * 24 * 2;
 
 task("stake", "Staking tokens")
-  .addParam("amount", "The amount of tokens to stake")
   .addParam("address", "The address from which u want stake tokens")
+  .addParam("amount", "The amount of tokens to stake")
     .setAction(async (taskArgs, hre) => {
       const amount = taskArgs.amount;
       const signer = await hre.ethers.getSigner(taskArgs.address);
@@ -67,6 +67,10 @@ const config: HardhatUserConfig = {
       url: process.env.SEPOLIA_URL,
       accounts: process.env.PRIVATE_KEYS ? process.env.PRIVATE_KEYS.split(",") : [],
     },
+    holesky: {
+      url: process.env.HOLESKY_URL,
+      accounts: process.env.PRIVATE_KEYS ? process.env.PRIVATE_KEYS.split(",") : [],
+    }
   },
   etherscan :{
     apiKey: process.env.ETHERSCAN_API,
