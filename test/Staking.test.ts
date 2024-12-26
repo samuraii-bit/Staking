@@ -1,7 +1,7 @@
 import {loadFixture, ethers, expect, time} from "./setup";
-import {name as stakingName, rewardRate, stakeLockTime, unstakeLockTime} from "../Inits/stakingContractInit";
-import {name as MFTname, symbol, decimals, initialSupply} from "../Inits/MFT_Init"
-import {name as lpTokenName} from "../Inits/lpToken_init"
+import {name as stakingName, rewardRate, stakeLockTime, unstakeLockTime} from "./inits/stakingContract.init";
+import {name as MFTname, symbol, decimals, initialSupply} from "./inits/rewardToken.init"
+import {name as lpTokenName} from "./inits/rewardToken.init"
 
 describe("Testing Staking", function() {
 

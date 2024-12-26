@@ -1,6 +1,6 @@
 import { writeFileSync } from 'fs';
 import { ethers } from "hardhat";
-import {name, symbol, decimals, initialSupply} from "../Inits/MFT_Init";
+import {name, symbol, decimals, initialSupply} from "../test/inits/rewardToken.init";
 
 async function main() {
     const MFTFactory = await ethers.getContractFactory(name);
@@ -9,8 +9,8 @@ async function main() {
     await MFTContract.waitForDeployment();
 
     console.log(`Contract deployed to: ${MFTContract.target}`);
-    const addresses = {contractAddress: MFTContract.target, ownerAddress: MFTContract.deploymentTransaction()?.from};
-    writeFileSync("../contractsInfo/MFT_modified_Addresses.json", JSON.stringify(addresses, null, 2));
+    const addresses = {rewardTokenContractAddress: MFTContract.target, ownerAddress: MFTContract.deploymentTransaction()?.from};
+    writeFileSync("./scripts/config/rewardTokenAddresses.json", JSON.stringify(addresses, null, 2));
 }
 
 main().catch((error) => {

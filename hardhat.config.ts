@@ -1,5 +1,5 @@
 import { HardhatUserConfig, task } from "hardhat/config";
-import {contractAddress as StakingContractAddress} from "./contractsInfo/uniswapLPTokenInfo.json";
+import {stakingContractAddress} from "./scripts/config/StakingContractAddresses.json";
 import "@nomicfoundation/hardhat-toolbox";
 require("dotenv").config();
 
@@ -14,7 +14,7 @@ task("stake", "Staking tokens")
     .setAction(async (taskArgs, hre) => {
       const amount = taskArgs.amount;
       const signer = await hre.ethers.getSigner(taskArgs.address);
-      const StakingContract = await hre.ethers.getContractAt(StakingContractName, StakingContractAddress);
+      const StakingContract = await hre.ethers.getContractAt(StakingContractName, stakingContractAddress);
       const tx = await StakingContract.connect(signer).stake(amount);
       const receipt = await tx.wait();
 

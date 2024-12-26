@@ -36,7 +36,6 @@ contract Staking is IStaking, AccessControl {
     
     function stake(uint256 _amount) external {
         require(_amount > 0, "Amount must be greater than 0");
-        require(lpToken.balanceOf(msg.sender) >= _amount, "No funds enough to stake");
         require(block.timestamp >= stakes[msg.sender].lastStakeTimeStamp + stakeLockTime, "U have to wait");
 
         if (stakes[msg.sender].balance > 0) {
@@ -84,22 +83,19 @@ contract Staking is IStaking, AccessControl {
         emit Unstake(msg.sender);
     }
 
-    function setNewRewardRate(uint256 _rewardRate) external {
-        require(hasRole(ADMIN_ROLE, msg.sender), "Only admins can use this function");
+    function setNewRewardRate(uint256 _rewardRate) external onlyRole(ADMIN_ROLE) {
         rewardRate = _rewardRate;
         
         emit SetNewRewardRate(_rewardRate);
     }
     
-    function setNewStakeLockTime(uint256 _stakeLockTime) external {
-        require(hasRole(ADMIN_ROLE, msg.sender), "Only admins can use this function");
+    function setNewStakeLockTime(uint256 _stakeLockTime) external onlyRole(ADMIN_ROLE) {
         stakeLockTime = _stakeLockTime;
 
         emit SetNewStakeLockTime(_stakeLockTime);
     }
 
-    function setNewUnstakeLockTime(uint256 _unstakeLockTime) external {
-        require(hasRole(ADMIN_ROLE, msg.sender), "Only admins can use this function");
+    function setNewUnstakeLockTime(uint256 _unstakeLockTime) external onlyRole(ADMIN_ROLE) {
         unstakeLockTime = _unstakeLockTime;
 
         emit SetNewUnstakeLockTime(_unstakeLockTime);
